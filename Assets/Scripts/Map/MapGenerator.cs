@@ -24,7 +24,11 @@ public class MapGenerator
 
     private Texture2D forestTexutre;
     private Texture2D[] marshTextures;
-    public MapGenerator(int mapSize, int mapChunkSize, float cellSize, float noiseLacunarity, int mapSeed, int spawnSeed, float marshLimit, Material mapMaterial, Texture2D forestTexutre, Texture2D[] marshTextures, MapConfig mapConfig)
+    private Dictionary<MapVertexType, List<int>> spawnConfigDic;
+
+    private int forestSpawanWeightTotal;
+    private int marshSpawanWeightTotal;
+    public MapGenerator(int mapSize, int mapChunkSize, float cellSize, float noiseLacunarity, int mapSeed, int spawnSeed, float marshLimit, Material mapMaterial, Texture2D forestTexutre, Texture2D[] marshTextures, Dictionary<MapVertexType, List<int>> spawnConfigDic)
     {
         this.mapSize = mapSize;
         this.mapChunkSize = mapChunkSize;
@@ -36,8 +40,8 @@ public class MapGenerator
         this.mapMaterial = mapMaterial;
         this.forestTexutre = forestTexutre;
         this.marshTextures = marshTextures;
+        this.spawnConfigDic = spawnConfigDic;
     }
-
 
     /// <summary>
     /// 生成地图数据，主要是所有地图块都通用的数据
@@ -62,6 +66,13 @@ public class MapGenerator
         chunkMesh = GenerateMapMesh(mapChunkSize, mapChunkSize, cellSize);
         // 使用种子来进行随机生成
         Random.InitState(spawnSeed);
+
+        List<int> temps = spawnConfigDic[MapVertexType.Forest];
+        for (int i = 0; i < temps.Count; i++)
+            forestSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
+        temps = spawnConfigDic[MapVertexType.Marsh];
+        for (int i = 0; i < temps.Count; i++)
+            marshSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
     }
 
     /// <summary>
@@ -262,40 +273,47 @@ public class MapGenerator
         int offsetX = chunkIndex.x * mapChunkSize;
         int offsetY = chunkIndex.y * mapChunkSize;
         // 遍历地图顶点
-        // for (int x = 1; x < mapChunkSize; x++)
-        // {
-        //     for (int y = 1; y < mapChunkSize; y++)
-        //     {
-        //         MapVertex mapVertex = mapGrid.GetVertex(x + offsetX, y + offsetY);
-        //         // 根据概率配置随机
-        //         List<MapObjectSpwanConfigModel> configModels = mapConfig.SpawnConfigDic[mapVertex.VertexType];
-        //
-        //         // 我们确保整个配置概率值合为100
-        //         int randValue = Random.Range(1, 101); // 实际命中数字是从1~100 
-        //         float temp = 0;
-        //         int spawnConfigIndex = 0;   // 最终要生成的物品
-        //
-        //         // 30 20 50
-        //         for (int i = 0; i < configModels.Count; i++)
-        //         {
-        //             temp += configModels[i].Probability;
-        //             if (randValue < temp)
-        //             {
-        //                 // 命中
-        //                 spawnConfigIndex = i;
-        //                 break;
-        //             }
-        //         }
-        //         // 确定到底生成什么物品
-        //         MapObjectSpwanConfigModel spawnModel = configModels[spawnConfigIndex];
-        //         if (spawnModel.IsEmpty == false)
-        //         {
-        //             Vector3 position = mapVertex.Position + new Vector3(Random.Range(-cellSize/2,cellSize/2), 0,Random.Range(-cellSize / 2, cellSize / 2));
-        //             mapChunkObjectList.Add(new MapChunkMapObjectModel()
-        //                 { Prefab = spawnModel.Prefab, Position = position });
-        //         }
-        //     }
-        // }
+        for (int x = 1; x < mapChunkSize; x++)
+        {
+            for (int y = 1; y < mapChunkSize; y++)
+            {
+                MapVertex mapVertex = mapGrid.GetVertex(x + offsetX, y + offsetY);
+                // 根据概率配置随机
+                List<int> configIDs = spawnConfigDic[mapVertex.VertexType];
+                
+                // 确定权重的总和
+                int weightTotal = mapVertex.VertexType == MapVertexType.Forest
+                    ? forestSpawanWeightTotal
+                    : marshSpawanWeightTotal;
+
+                int randValue = Random.Range(1, weightTotal + 1); // 实际命中数字是从1~weightTotal
+                float temp = 0;
+                int spawnConfigIndex = 0;   // 最终要生成的物品
+        
+                // 30 20 50
+                for (int i = 0; i < configIDs.Count; i++)
+                {
+                    temp += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configIDs[i])
+                        .Probability;
+                    if (randValue < temp)
+                    {
+                        // 命中
+                        spawnConfigIndex = i;
+                        break;
+                    }
+                }
+                int configID = configIDs[spawnConfigIndex];
+                // 确定到底生成什么物品
+                MapObjectConfig spawnModel =
+                    ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configID);
+                if (spawnModel.IsEmpty == false)
+                {
+                    Vector3 position = mapVertex.Position + new Vector3(Random.Range(-cellSize/2,cellSize/2), 0,Random.Range(-cellSize / 2, cellSize / 2));
+                    mapChunkObjectList.Add(new MapChunkMapObjectModel()
+                        { Prefab = spawnModel.Prefab, Position = position });
+                }
+            }
+        }
 
         return mapChunkObjectList;
     }

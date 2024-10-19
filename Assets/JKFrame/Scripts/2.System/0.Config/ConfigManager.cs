@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 namespace JKFrame
 {
     public class ConfigManager : ManagerBase<ConfigManager>
@@ -6,6 +7,13 @@ namespace JKFrame
         [SerializeField]
         private ConfigSetting configSetting;
 
+        /// <summary>
+        /// 获取所有configTypeName下的配置
+        /// </summary>
+        public Dictionary<int, ConfigBase> GetConfigs(string configTypeName)
+        {
+            return configSetting.GetConfigs(configTypeName);
+        }
         /// <summary>
         /// 获取配置
         /// </summary>

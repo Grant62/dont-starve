@@ -409,6 +409,7 @@
 "Assets/Scripts/Map/MapManager.cs"
 "Assets/Scripts/Player_Controller.cs"
 "Assets/Scripts/Time/TimeManager.cs"
+"Assets/Scripts/Tool/ConfigName.cs"
 -langversion:9.0
 
 /deterministic

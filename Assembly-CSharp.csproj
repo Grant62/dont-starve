@@ -51,6 +51,7 @@
     <Compile Include="Assets\Scripts\Player_Controller.cs" />
     <Compile Include="Assets\Scripts\Map\Config\MapConfig.cs" />
     <Compile Include="Assets\Scripts\Map\Config\MapObjectConfig.cs" />
+    <Compile Include="Assets\Scripts\Tool\ConfigName.cs" />
     <Compile Include="Assets\Scripts\Map\MapGrid.cs" />
     <Compile Include="Assets\Scripts\Map\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\Map\MapManager.cs" />

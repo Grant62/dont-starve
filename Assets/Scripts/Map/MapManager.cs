@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using JKFrame;
 using UnityEngine;
 
 public class MapManager : MonoBehaviour
@@ -32,11 +33,22 @@ public class MapManager : MonoBehaviour
     private float chunkSizeOnWord;  // 在世界中实际的地图块尺寸 单位米
     private List<MapChunkController> lastVisibleChunkList = new List<MapChunkController>();
 
-
+    // 某个类型可以生成哪些配置ID
+    private Dictionary<MapVertexType, List<int>> spawnConfigDic;
     void Start()
     {
+        // 确定配置
+        Dictionary<int, ConfigBase> tempDic = ConfigManager.Instance.GetConfigs(ConfigName.MapObject);
+        spawnConfigDic = new Dictionary<MapVertexType, List<int>>();
+        spawnConfigDic.Add(MapVertexType.Forest, new List<int>());
+        spawnConfigDic.Add(MapVertexType.Marsh, new List<int>());
+        foreach (var item in tempDic)
+        {
+            MapVertexType mapVertexType = (item.Value as MapObjectConfig).MapVertexType;
+            spawnConfigDic[mapVertexType].Add(item.Key);
+        }
         // 初始化地图生成器
-        mapGenerator = new MapGenerator(mapSize, mapChunkSize, cellSize,noiseLacunarity,mapSeed,spawnSeed,marshLimit,mapMaterial,forestTexutre,marshTextures,mapConfig) ;
+        mapGenerator = new MapGenerator(mapSize, mapChunkSize, cellSize,noiseLacunarity,mapSeed,spawnSeed,marshLimit,mapMaterial,forestTexutre,marshTextures,spawnConfigDic);
         mapGenerator.GenerateMapData();
         mapChunkDic = new Dictionary<Vector2Int, MapChunkController>();
         chunkSizeOnWord = mapChunkSize * cellSize;
