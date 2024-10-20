@@ -22,5 +22,6 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   IsEmpty: 0
+  MapVertexType: 0
   Prefab: {fileID: 1073196532502105738, guid: ac4a49eaed902e946840a3558526b89a, type: 3}
-  Probability: 0
+  Probability: 2

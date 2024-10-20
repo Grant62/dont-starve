@@ -145,4 +145,29 @@ public class MapManager : MonoBehaviour
     {
         canUpdateChunk = true;
     }
+
+    #region 地图UI相关
+    private bool mapUIInitialized = false;
+    private bool isShowMaping = false;
+    private List<Vector2Int> mapUIUpdateChunkIndex = new List<Vector2Int>();    // 待更新的列表
+    private UI_MapWindow mapUI;
+
+    // 显示地图UI
+    private void ShowMapUI()
+    {
+        if (mapUIInitialized)
+        {
+            
+        }
+        else
+        {
+            mapUI = UIManager.Instance.Show<UI_MapWindow>();
+        }
+    }
+    // 关闭地图UI
+    private void CloseMapUI()
+    {
+        
+    }
+    #endregion
 }

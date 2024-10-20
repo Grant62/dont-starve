@@ -52,6 +52,7 @@
     <Compile Include="Assets\Scripts\Map\Config\MapConfig.cs" />
     <Compile Include="Assets\Scripts\Map\Config\MapObjectConfig.cs" />
     <Compile Include="Assets\Scripts\Tool\ConfigName.cs" />
+    <Compile Include="Assets\Scripts\UI\Map\UI_MapWindow.cs" />
     <Compile Include="Assets\Scripts\Map\MapGrid.cs" />
     <Compile Include="Assets\Scripts\Map\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\Map\MapManager.cs" />
@@ -798,6 +799,9 @@
     </Reference>
     <Reference Include="Unity.Rider.Editor">
       <HintPath>E:\UnityProject\dontStarve\dont-starve\Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.2D.Sprite.Editor">
+      <HintPath>E:\UnityProject\dontStarve\dont-starve\Library\ScriptAssemblies\Unity.2D.Sprite.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.AI.Navigation.Editor.ConversionSystem">
       <HintPath>E:\UnityProject\dontStarve\dont-starve\Library\ScriptAssemblies\Unity.AI.Navigation.Editor.ConversionSystem.dll</HintPath>
