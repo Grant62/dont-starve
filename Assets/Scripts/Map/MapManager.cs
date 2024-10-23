@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using JKFrame;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class MapManager : MonoBehaviour
 {
     // 地图尺寸
-    public int mapSize;        // 一行或者一列有多少个地图块
-    public int mapChunkSize;   // 一个地图块有多少个格子
+    public int chunkAmount;        // 一行或者一列有多少个地图块
+    public int mapChunkAmount;   // 一个地图块有多少个格子
     public float cellSize;     // 一个格子多少米
 
     // 地图的随机参数
@@ -18,7 +19,7 @@ public class MapManager : MonoBehaviour
 
     // 地图的美术资源
     public Material mapMaterial;
-    public Texture2D forestTexutre;
+    public Texture2D forestTexture;
     public Texture2D[] marshTextures;
     public MapConfig mapConfig;   //地图配置
 
@@ -30,7 +31,8 @@ public class MapManager : MonoBehaviour
 
     public float updateChunkTime = 1f;
     private bool canUpdateChunk = true;
-    private float chunkSizeOnWord;  // 在世界中实际的地图块尺寸 单位米
+    private float mapSizeOnWorld;    // 在世界中实际的地图整体尺寸 单位米
+    private float chunkSizeOnWorld;  // 在世界中实际的地图块尺寸 单位米
     private List<MapChunkController> lastVisibleChunkList = new List<MapChunkController>();
 
     // 某个类型可以生成哪些配置ID
@@ -48,16 +50,25 @@ public class MapManager : MonoBehaviour
             spawnConfigDic[mapVertexType].Add(item.Key);
         }
         // 初始化地图生成器
-        mapGenerator = new MapGenerator(mapSize, mapChunkSize, cellSize,noiseLacunarity,mapSeed,spawnSeed,marshLimit,mapMaterial,forestTexutre,marshTextures,spawnConfigDic);
+        mapGenerator = new MapGenerator(chunkAmount, mapChunkAmount, cellSize, noiseLacunarity, mapSeed, spawnSeed,
+            marshLimit, mapMaterial, forestTexture, marshTextures, spawnConfigDic);
         mapGenerator.GenerateMapData();
         mapChunkDic = new Dictionary<Vector2Int, MapChunkController>();
-        chunkSizeOnWord = mapChunkSize * cellSize;
+        chunkSizeOnWorld = mapChunkAmount * cellSize;
+        mapSizeOnWorld = chunkSizeOnWorld * chunkAmount;
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateVisibleChunk();
+
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            if (isShowMaping) CloseMapUI();
+            else ShowMapUI();
+            isShowMaping = !isShowMaping;
+        }
     }
 
     // 根据观察者的位置来刷新那些地图块可以看到
@@ -122,8 +133,8 @@ public class MapManager : MonoBehaviour
     /// </summary>
     private Vector2Int GetMapChunkIndexByWorldPosition(Vector3 worldPostion)
     {
-        int x = Mathf.Clamp(Mathf.RoundToInt(worldPostion.x / chunkSizeOnWord), 1, mapSize);
-        int y = Mathf.Clamp(Mathf.RoundToInt(worldPostion.z / chunkSizeOnWord), 1, mapSize);
+        int x = Mathf.Clamp(Mathf.RoundToInt(worldPostion.x / chunkSizeOnWorld), 1, chunkAmount);
+        int y = Mathf.Clamp(Mathf.RoundToInt(worldPostion.z / chunkSizeOnWorld), 1, chunkAmount);
         return new Vector2Int(x,y);
     }
 
@@ -133,13 +144,15 @@ public class MapManager : MonoBehaviour
     private MapChunkController GenerateMapChunk(Vector2Int index)
     {
         // 检查坐标的合法性
-        if (index.x > mapSize-1 || index.y > mapSize-1) return null;
+        if (index.x > chunkAmount - 1 || index.y > chunkAmount - 1) return null;
         if (index.x < 0 || index.y < 0) return null;
-        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform);
+        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform, () =>
+        {
+            mapUIUpdateChunkIndexList.Add(index);
+        });
         mapChunkDic.Add(index, chunk);
         return chunk;
     }
-
 
     private void RestCanUpdateChunkFlag()
     {
@@ -149,25 +162,39 @@ public class MapManager : MonoBehaviour
     #region 地图UI相关
     private bool mapUIInitialized = false;
     private bool isShowMaping = false;
-    private List<Vector2Int> mapUIUpdateChunkIndex = new List<Vector2Int>();    // 待更新的列表
+    private List<Vector2Int> mapUIUpdateChunkIndexList = new List<Vector2Int>();    // 待更新的列表
     private UI_MapWindow mapUI;
 
     // 显示地图UI
     private void ShowMapUI()
     {
-        if (mapUIInitialized)
+        mapUI = UIManager.Instance.Show<UI_MapWindow>();
+        if (!mapUIInitialized)
         {
-            
+            mapUI.InitMap(chunkAmount, mapSizeOnWorld, forestTexture);
+            mapUIInitialized = true;
         }
-        else
+        // 更新
+        UpdateMapUI();
+    }
+    private void UpdateMapUI()
+    {
+        for (int i = 0; i < mapUIUpdateChunkIndexList.Count; i++)
         {
-            mapUI = UIManager.Instance.Show<UI_MapWindow>();
+            Vector2Int chunkIndex = mapUIUpdateChunkIndexList[i];
+            Texture2D texture = null;
+            MapChunkController mapChunk = mapChunkDic[chunkIndex];
+            if (!mapChunk.IsAllForest)
+            {
+                texture = (Texture2D)mapChunk.GetComponent<MeshRenderer>().material.mainTexture;
+            }
+            
         }
     }
     // 关闭地图UI
     private void CloseMapUI()
     {
-        
+        UIManager.Instance.Close<UI_MapWindow>();
     }
     #endregion
 }

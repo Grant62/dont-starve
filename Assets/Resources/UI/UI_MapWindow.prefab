@@ -164,10 +164,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caea5f5b26002db47ac7fbb0bf8dd58e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  content: {fileID: 0}
-  mapItemPrefab: {fileID: 0}
-  mapIconPrefab: {fileID: 0}
-  playerIcon: {fileID: 0}
+  content: {fileID: 2046737194084557547}
+  mapItemPrefab: {fileID: 3662977321374722347, guid: 1b7bd28f737c3b64faa8488ef113b4c9,
+    type: 3}
+  mapIconPrefab: {fileID: 3662977321374722347, guid: eec48d8de819d5946b45ffce2bb54500,
+    type: 3}
+  playerIcon: {fileID: 6833458677379382622}
 --- !u!1 &3879118246482250592
 GameObject:
   m_ObjectHideFlags: 0

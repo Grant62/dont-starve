@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using JKFrame;
+using UnityEngine.Serialization;
 
 [UIElement(true,"UI/UI_MapWindow",4)]
 public class UI_MapWindow : UI_WindowBase
 {
-    [SerializeField] private RectTransform content; // 所有地图块、Icon显示的父物体
+    [SerializeField] private RectTransform contentTransform; // 所有地图块、Icon显示的父物体
     private float contentSize;
 
     [SerializeField] private GameObject mapItemPrefab; // 单个地图块在UI中的预制体
@@ -15,7 +16,8 @@ public class UI_MapWindow : UI_WindowBase
 
     private Dictionary<Vector2Int, Image> mapImageDic = new Dictionary<Vector2Int, Image>();    // 地图图片字典 Key是坐标
     
-    private float mapItemSize;      // UI地图块的尺寸
+    private float mapChunkImageSize;      // UI地图块的尺寸
+    public int mapChunkAmount;   // 一个地图块有多少个格子
     private float mapSizeOnWorld;   // 3D地图在世界中的坐标
     private Sprite forestSprite;    // 森林地块精灵
 
@@ -25,20 +27,21 @@ public class UI_MapWindow : UI_WindowBase
     /// <summary>
     /// 初始化地图
     /// </summary>
-    /// <param name="mapSize">一个地图一行或一列有多少个Image/Chunk</param>
+    /// <param name="chunkAmount">一个地图一行或一列有多少个Image/Chunk</param>
     /// <param name="mapSizeOnWorld">地图在世界中一行或一列有多大</param>
     /// <param name="forestTexture">森林的贴图</param>
-    public void InitMap(float mapSize,float mapSizeOnWorld,Texture2D forestTexture)
+    public void InitMap(float chunkAmount, int mapChunkAmount, float mapSizeOnWorld, Texture2D forestTexture)
     {
         this.mapSizeOnWorld = mapSizeOnWorld;
         this.forestSprite = CreateMapSprite(forestTexture);
+        this.mapChunkAmount = mapChunkAmount;
         
         // 内容尺寸
         contentSize = mapSizeOnWorld * 10;
-        content.sizeDelta = new Vector2(contentSize, contentSize);
+        contentTransform.sizeDelta = new Vector2(contentSize, contentSize);
         
         // 一个UI地图块的尺寸
-        mapItemSize = contentSize / mapSize;
+        mapChunkImageSize = contentSize / chunkAmount;
         minScale = 1050f / contentSize;
     }
     
@@ -50,9 +53,31 @@ public class UI_MapWindow : UI_WindowBase
     {
         float x = viewerPosition.x / mapSizeOnWorld;
         float y = viewerPosition.y / mapSizeOnWorld;
-        content.pivot = new Vector2(x, y);
+        contentTransform.pivot = new Vector2(x, y);
     }
-    
+
+    /// <summary>
+    /// 添加单个地图块
+    /// </summary>
+    public void AddMapChunk(Vector2Int chunkIndex, List<MapChunkMapObjectModel> mapObjectList,
+        Texture2D texture = null)
+    {
+        RectTransform mapChunkRect = Instantiate(mapItemPrefab, contentTransform).GetComponent<RectTransform>();
+        // 确定地图块Image的坐标和宽高
+        mapChunkRect.anchoredPosition = new Vector2(chunkIndex.x * mapChunkImageSize, chunkIndex.y * mapChunkImageSize);
+        mapChunkRect.sizeDelta = new Vector2(mapChunkImageSize, mapChunkImageSize);
+
+        Image mapChunkImage = mapChunkRect.GetComponent<Image>();
+        // 森林的情况
+        if (texture == null)
+        {
+            mapChunkImage.type = Image.Type.Tiled;
+            // 要在一个image中显示 这个地图块包含的格子数量
+            float ratio = forestSprite.texture.width / mapChunkImageSize;
+            mapChunkImage.pixelsPerUnitMultiplier = mapChunkAmount * ratio;
+        }
+        else mapChunkImage.sprite = CreateMapSprite(texture);
+    }
     /// <summary>
     /// 生成地图精灵
     /// </summary>

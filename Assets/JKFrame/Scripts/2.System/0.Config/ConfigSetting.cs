@@ -38,12 +38,12 @@ namespace JKFrame
         public T GetConfig<T>(string configTypeName, int id) where T : ConfigBase
         {
             // 检查类型
-            if (!configDic.TryGetValue(configTypeName,out Dictionary<int,ConfigBase> dic))
+            if (!configDic.TryGetValue(configTypeName, out Dictionary<int, ConfigBase> dic)) 
             {
                 throw new System.Exception("JK:配置设置中不包含这个Key:" + configTypeName);
             }
             // 检查ID
-            if (!dic.TryGetValue(id,out ConfigBase config))
+            if (!dic.TryGetValue(id, out ConfigBase config)) 
             {
                 throw new System.Exception($"JK:配置设置中{configTypeName}不包含这个ID:{id}");
             }

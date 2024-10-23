@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using JKFrame;
+using Random = UnityEngine.Random;
+
 /// <summary>
 /// 地图生成工具
 /// </summary>
@@ -78,7 +81,7 @@ public class MapGenerator
     /// <summary>
     /// 生成地图块
     /// </summary>
-    public MapChunkController GenerateMapChunk(Vector2Int chunkIndex,Transform parent)
+    public MapChunkController GenerateMapChunk(Vector2Int chunkIndex,Transform parent,Action callBackForMapTexture)
     {
         // 生成地图块物体
         GameObject mapChunkObj = new GameObject("Chunk_" + chunkIndex.ToString());
@@ -89,11 +92,14 @@ public class MapGenerator
         // 添加碰撞体
         mapChunkObj.AddComponent<MeshCollider>();
 
+        bool allForest;
         // 生成地图块的贴图
         Texture2D mapTexture;
          this.StartCoroutine
          (
-             GenerateMapTexture(chunkIndex, (tex, isAllForest) => {
+             GenerateMapTexture(chunkIndex, (tex, isAllForest) =>
+             {
+                 allForest = isAllForest;
              // 如果完全是森林，没必要在实例化一个材质球
              if (isAllForest)
              {
@@ -106,17 +112,19 @@ public class MapGenerator
                  material.mainTexture = tex;
                  mapChunkObj.AddComponent<MeshRenderer>().material = material;
              }
-         }));
+             callBackForMapTexture?.Invoke();
+             // 确定坐标
+             Vector3 position = new Vector3(chunkIndex.x * mapChunkSize * cellSize, 0, chunkIndex.y * mapChunkSize * cellSize);
+             mapChunk.transform.position = position;
+             mapChunkObj.transform.SetParent(parent);
+        
+             // 生成场景物体数据
+             List<MapChunkMapObjectModel> mapObjectModelList = SpawnMapObject(chunkIndex);
+             mapChunk.Init(chunkIndex,
+                 position + new Vector3((mapChunkSize * cellSize) / 2, 0, (mapChunkSize * cellSize) / 2), allForest,
+                 mapObjectModelList);
+             }));
        
-        // 确定坐标
-        Vector3 position = new Vector3(chunkIndex.x * mapChunkSize * cellSize, 0, chunkIndex.y * mapChunkSize * cellSize);
-        mapChunk.transform.position = position;
-        mapChunkObj.transform.SetParent(parent);
-        
-        // 生成场景物体数据
-        List<MapChunkMapObjectModel> mapObjectModelList = SpawnMapObject(chunkIndex);
-        mapChunk.Init(chunkIndex,position + new Vector3((mapChunkSize * cellSize) / 2, 0, (mapChunkSize * cellSize) / 2),mapObjectModelList);
-        
         return mapChunk;
     }
 
@@ -310,7 +318,7 @@ public class MapGenerator
                 {
                     Vector3 position = mapVertex.Position + new Vector3(Random.Range(-cellSize/2,cellSize/2), 0,Random.Range(-cellSize / 2, cellSize / 2));
                     mapChunkObjectList.Add(new MapChunkMapObjectModel()
-                        { Prefab = spawnModel.Prefab, Position = position });
+                        { ConfigID = configID, Position = position });
                 }
             }
         }

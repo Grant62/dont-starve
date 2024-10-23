@@ -13,7 +13,7 @@ public class MapChunkData
 
 public class MapChunkMapObjectModel
 {
-    public GameObject Prefab;
+    public int ConfigID;
     public Vector3 Position;
 }
 
@@ -21,18 +21,19 @@ public class MapChunkController : MonoBehaviour
 {
     public Vector2Int ChunkIndex { get; private set; }
     public Vector3 CentrePosition { get; private set; }
-    
+    public bool IsAllForest { get; private set; }
     private MapChunkData mapChunkData;
     private List<GameObject> mapObjectList;
     
     private bool isActive = false;
-    public void Init(Vector2Int chunkIndex, Vector3 centrePosition, List<MapChunkMapObjectModel> MapObjectList)
+    public void Init(Vector2Int chunkIndex, Vector3 centrePosition, bool isAllForest, List<MapChunkMapObjectModel> MapObjectList)
     {
         ChunkIndex = chunkIndex;
         CentrePosition = centrePosition;
         mapChunkData = new MapChunkData();
         mapChunkData.MapObjectList = MapObjectList;
         mapObjectList = new List<GameObject>(MapObjectList.Count);
+        IsAllForest = isAllForest;
     }
     
     public void SetActive(bool active)
@@ -48,7 +49,9 @@ public class MapChunkController : MonoBehaviour
             {
                 for (int i = 0; i < ObjectList.Count; i++)
                 {
-                    GameObject go = PoolManager.Instance.GetGameObject(ObjectList[i].Prefab, transform);
+                    MapObjectConfig config =
+                        ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, ObjectList[i].ConfigID);
+                    GameObject go = PoolManager.Instance.GetGameObject(config.Prefab, transform);
                     go.transform.position = ObjectList[i].Position;
                     mapObjectList.Add(go);
                 }
