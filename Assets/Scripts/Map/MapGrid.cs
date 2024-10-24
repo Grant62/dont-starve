@@ -178,8 +178,9 @@ public class MapGrid
     /// <summary>
     /// 计算格子贴图的索引数字
     /// </summary>
-    public void CalculateMapVertexType(float[,] noiseMap,float limit)
-    { 
+    public void CalculateMapVertexType(float[,] noiseMap, float limit)
+
+    {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
 
@@ -189,7 +190,7 @@ public class MapGrid
             {
                 // 基于噪声中的值确定这个顶点的类型
                 // 大于边界是沼泽，否则是森林
-                if (noiseMap[x,z] >=limit)
+                if (noiseMap[x, z] >= limit)
                 {
                     SetVertexType(x, z, MapVertexType.Marsh);
                 }

@@ -48,14 +48,15 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Map\MapChunkController.cs" />
     <Compile Include="Assets\Scripts\Time\TimeManager.cs" />
-    <Compile Include="Assets\Scripts\Player_Controller.cs" />
     <Compile Include="Assets\Scripts\Map\Config\MapConfig.cs" />
     <Compile Include="Assets\Scripts\Map\Config\MapObjectConfig.cs" />
+    <Compile Include="Assets\Scripts\Player\Player_Controller.cs" />
     <Compile Include="Assets\Scripts\Tool\ConfigName.cs" />
     <Compile Include="Assets\Scripts\UI\Map\UI_MapWindow.cs" />
     <Compile Include="Assets\Scripts\Map\MapGrid.cs" />
     <Compile Include="Assets\Scripts\Map\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\Map\MapManager.cs" />
+    <Compile Include="Assets\Scripts\Player\Camera_Controller.cs" />
     <None Include="Assets\Res\环境\森林\shader\basic shader.shader" />
     <None Include="Assets\Res\环境\森林\shader\transparent.shader" />
     <None Include="Assets\Res\环境\森林\shader\water.shader" />

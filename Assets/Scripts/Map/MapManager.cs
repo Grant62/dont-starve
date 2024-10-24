@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using JKFrame;
 
-public class MapManager : MonoBehaviour
+public class MapManager : SingletonMono<MapManager>
 {
     // 地图尺寸
     public int mapAmount;        // 一行或者一列有多少个地图块
@@ -29,14 +29,20 @@ public class MapManager : MonoBehaviour
 
     public float updateChunkTime = 1f;
     private bool canUpdateChunk = true;
-    private float mapSizeOnWorld;    // 在世界中实际的地图整体尺寸
+    public float mapSizeOnWorld;    // 在世界中实际的地图整体尺寸
     private float chunkSizeOnWorld;  // 在世界中实际的地图块尺寸 单位米
     private List<MapChunkController> lastVisibleChunkList = new List<MapChunkController>();
 
     // 某个类型可以生成那些配置的ID
     private Dictionary<MapVertexType, List<int>> spawnConfigDic;
 
-    void Start()
+    protected override void Awake()
+    {
+        base.Awake();
+        Init();
+    }
+
+    void Init()
     {
         // 确定配置
         Dictionary<int, ConfigBase> tempDic = ConfigManager.Instance.GetConfigs(ConfigName.MapObject);
@@ -50,7 +56,7 @@ public class MapManager : MonoBehaviour
         }
 
         // 初始化地图生成器
-        mapGenerator = new MapGenerator(mapAmount, mapChunkAmount, cellSize,noiseLacunarity,mapSeed,spawnSeed,marshBorder,mapMaterial,forestTexutre,marshTextures, spawnConfigDic);
+        mapGenerator = new MapGenerator(mapAmount, mapChunkAmount, cellSize, noiseLacunarity, mapSeed, spawnSeed, marshBorder, mapMaterial, forestTexutre, marshTextures, spawnConfigDic);
         mapGenerator.GenerateMapData();
         mapChunkDic = new Dictionary<Vector2Int, MapChunkController>();
         chunkSizeOnWorld = mapChunkAmount * cellSize;
@@ -148,7 +154,7 @@ public class MapManager : MonoBehaviour
         // 检查坐标的合法性
         if (index.x > mapAmount-1 || index.y > mapAmount-1) return null;
         if (index.x < 0 || index.y < 0) return null;
-        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform,()=> mapUIUpdateChunkIndexList.Add(index));
+        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform, () => mapUIUpdateChunkIndexList.Add(index));
         mapChunkDic.Add(index, chunk);
         return chunk;
     }
