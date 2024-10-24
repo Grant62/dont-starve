@@ -24,4 +24,5 @@ MonoBehaviour:
   IsEmpty: 0
   MapVertexType: 0
   Prefab: {fileID: 458881682386774922, guid: 2ed48eca905326b4991d5ef2c86a2563, type: 3}
+  MapIconSprite: {fileID: 21300000, guid: 2136843e35fd11a4f85c440cc81e26e3, type: 3}
   Probability: 10

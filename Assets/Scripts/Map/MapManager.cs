@@ -183,7 +183,7 @@ public class MapManager : MonoBehaviour
             Vector2Int chunkIndex = mapUIUpdateChunkIndexList[i];
             Texture2D texture = null;
             MapChunkController mapchunk = mapChunkDic[chunkIndex];
-            if (mapchunk.IsAllForest == false)
+            if (!mapchunk.IsAllForest)
             {
                 texture = (Texture2D)mapchunk.GetComponent<MeshRenderer>().material.mainTexture;
             }

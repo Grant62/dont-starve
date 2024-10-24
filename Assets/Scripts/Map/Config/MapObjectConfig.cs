@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using JKFrame;
 using Sirenix.OdinInspector;
@@ -13,6 +11,8 @@ public class MapObjectConfig : ConfigBase
     public MapVertexType MapVertexType;
     [LabelText("生成的预制体")]
     public GameObject Prefab;
+    [LabelText("在UI地图上的Icon")]
+    public Sprite MapIconSprite;
     [LabelText("生成概率 权重类型")]
     public int Probability;
 }

@@ -25,6 +25,7 @@ public class MapGenerator
 
     private Texture2D forestTexutre;
     private Texture2D[] marshTextures;
+    // 某个类型可以生成那些配置的ID
     private Dictionary<MapVertexType, List<int>> spawnConfigDic;
 
     private int forestSpawanWeightTotal;
@@ -79,7 +80,7 @@ public class MapGenerator
     /// <summary>
     /// 生成地图块
     /// </summary>
-    public MapChunkController GenerateMapChunk(Vector2Int chunkIndex,Transform parent,Action callBackForMapTexture)
+    public MapChunkController GenerateMapChunk(Vector2Int chunkIndex, Transform parent, Action callBackForMapTexture)
     {
         // 生成地图块物体
         GameObject mapChunkObj = new GameObject("Chunk_" + chunkIndex.ToString());

@@ -45,15 +45,15 @@ public class UI_MapWindow : UI_WindowBase
     /// 初始化地图
     /// </summary>
     /// <param name="mapAmount">一个地图一行或一列有多少个Image/Chunk</param>
-    /// <param name="mapSizeOnWord">地图在世界中一行或一列有多大</param>
+    /// <param name="mapSizeOnWorld">地图在世界中一行或一列有多大</param>
     /// <param name="forestTexture">森林的贴图</param>
-    public void InitMap(float mapAmount,int mapChunkSize, float mapSizeOnWord,Texture2D forestTexture)
+    public void InitMap(float mapAmount, int mapChunkSize, float mapSizeOnWorld, Texture2D forestTexture)
     { 
-        this.mapSizeOnWorld = mapSizeOnWord;
+        this.mapSizeOnWorld = mapSizeOnWorld;
         forestSprite = CreateMapSprite(forestTexture);
         this.mapChunkAmount = mapChunkSize;
         // 内容尺寸
-        contentSize = mapSizeOnWord * 10;
+        contentSize = mapSizeOnWorld * 10;
         contentTrans.sizeDelta = new Vector2(contentSize, contentSize);
 
         // 一个UI地图块的尺寸
@@ -82,7 +82,7 @@ public class UI_MapWindow : UI_WindowBase
     /// <summary>
     /// 添加一个地图块
     /// </summary>
-    public void AddMapChunk(Vector2Int chunkIndex,List<MapChunkMapObjectModel> mapObjectList,Texture2D texture = null)
+    public void AddMapChunk(Vector2Int chunkIndex, List<MapChunkMapObjectModel> mapObjectList, Texture2D texture = null)
     { 
         RectTransform mapChunkRect = Instantiate(mapItemPrefab,contentTrans).GetComponent<RectTransform>();
         // 确定地图块的Image的坐标和宽高
@@ -103,8 +103,19 @@ public class UI_MapWindow : UI_WindowBase
         }
         else mapChunkImage.sprite = CreateMapSprite(texture);
 
-        // TODO:添加物体的ICON
-
+        // 添加物体的ICON
+        for (int i = 0; i < mapObjectList.Count; i++)
+        {
+            MapObjectConfig config = ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, mapObjectList[i].ConfigID);
+            // TODO:这个物体它需要放进UI地图，除了Icon可能还有其他信息
+            if (config.MapIconSprite == null) continue;
+            GameObject go = PoolManager.Instance.GetGameObject(mapIconPrefab, contentTrans);
+            go.GetComponent<Image>().sprite = config.MapIconSprite;
+            float x = mapObjectList[i].Position.x * 10; // 因为整个Content的尺寸在初始化已经*10，所以Icon也需要乘上同样的系数
+            float y = mapObjectList[i].Position.z * 10;
+            go.GetComponent<RectTransform>().anchoredPosition = new Vector2(x, y);
+            
+        }
         // TODO:待重构，因为肯定还需要保存ICON的信息用来后续移除（因为ICON代表的花草树木有可能会消失）
         mapImageDic.Add(chunkIndex, mapChunkImage);
     }
