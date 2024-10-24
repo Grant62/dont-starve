@@ -2,5 +2,8 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Assets/Scripts/Map/MapManager.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/Time/TimeManager.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/UI/Map/UI_MapWindow.cs" charset="GBK" />
+    <file url="PROJECT" charset="GBK" />
   </component>
 </project>

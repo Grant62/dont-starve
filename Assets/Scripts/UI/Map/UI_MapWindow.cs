@@ -2,87 +2,120 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using JKFrame;
-using UnityEngine.Serialization;
 
-[UIElement(true,"UI/UI_MapWindow",4)]
+/// <summary>
+/// UIµØÍ¼´°¿Ú
+/// </summary>
+[UIElement(true, "UI/UI_MapWindow",4)]
 public class UI_MapWindow : UI_WindowBase
 {
-    [SerializeField] private RectTransform contentTransform; // æ‰€æœ‰åœ°å›¾å—ã€Iconæ˜¾ç¤ºçš„çˆ¶ç‰©ä½“
+    [SerializeField] private RectTransform contentTrans; // ËùÓĞµØÍ¼¿é¡¢IconÏÔÊ¾µÄ¸¸ÎïÌå
     private float contentSize;
 
-    [SerializeField] private GameObject mapItemPrefab; // å•ä¸ªåœ°å›¾å—åœ¨UIä¸­çš„é¢„åˆ¶ä½“
-    [SerializeField] private GameObject mapIconPrefab; // å•ä¸ªIconåœ¨UIä¸­çš„é¢„åˆ¶ä½“
-    [SerializeField] private RectTransform playerIcon; // ç©å®¶æ‰€åœ¨ä½ç½®çš„Icon
+    [SerializeField] private GameObject mapItemPrefab; // µ¥¸öµØÍ¼¿éÔÚUIÖĞµÄÔ¤ÖÆÌå
+    [SerializeField] private GameObject mapIconPrefab; // µ¥¸öIconÔÚUIÖĞµÄÔ¤ÖÆÌå
+    [SerializeField] private RectTransform playerIcon; // Íæ¼ÒËùÔÚÎ»ÖÃµÄIcon
 
-    private Dictionary<Vector2Int, Image> mapImageDic = new Dictionary<Vector2Int, Image>();    // åœ°å›¾å›¾ç‰‡å­—å…¸ Keyæ˜¯åæ ‡
-    
-    private float mapChunkImageSize;      // UIåœ°å›¾å—çš„å°ºå¯¸
-    public int mapChunkAmount;   // ä¸€ä¸ªåœ°å›¾å—æœ‰å¤šå°‘ä¸ªæ ¼å­
-    private float mapSizeOnWorld;   // 3Dåœ°å›¾åœ¨ä¸–ç•Œä¸­çš„åæ ‡
-    private Sprite forestSprite;    // æ£®æ—åœ°å—ç²¾çµ
+    private Dictionary<Vector2Int, Image> mapImageDic = new Dictionary<Vector2Int, Image>();    // µØÍ¼Í¼Æ¬×Öµä KeyÊÇ×ø±ê
 
-    private float minScale; // æœ€å°çš„æ”¾å¤§å€æ•°
-    private float maxScale; // æœ€å¤§çš„æ”¾å¤§å€æ•°
+    private float mapChunkImageSize;  // UIµØÍ¼¿éµÄ³ß´ç
+    private int mapChunkAmount;   // Ò»¸öµØÍ¼¿éÓĞ¶àÉÙ¸ö¸ñ×Ó   
+    private float mapSizeOnWorld;// 3DµØÍ¼ÔÚÊÀ½çÖĞµÄ×ø±ê
+    private Sprite forestSprite;// É­ÁÖµØ¿éµÄ¾«Áé
+
+    private float minScale; // ×îĞ¡µÄ·Å´ó±¶Êı
+    private float maxScale = 10; // ×î´óµÄ·Å´ó±¶Êı
+
+    public override void Init()
+    {
+        transform.Find("Scroll View").GetComponent<ScrollRect>().onValueChanged.AddListener(UpdatePlayerIconPos);
+    }
+
+    private void Update()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0)
+        {
+            float newScale = Mathf.Clamp(contentTrans.localScale.x + scroll, minScale, maxScale);
+            contentTrans.localScale = new Vector3(newScale, newScale, 0);
+        }
+    }
 
     /// <summary>
-    /// åˆå§‹åŒ–åœ°å›¾
+    /// ³õÊ¼»¯µØÍ¼
     /// </summary>
-    /// <param name="chunkAmount">ä¸€ä¸ªåœ°å›¾ä¸€è¡Œæˆ–ä¸€åˆ—æœ‰å¤šå°‘ä¸ªImage/Chunk</param>
-    /// <param name="mapSizeOnWorld">åœ°å›¾åœ¨ä¸–ç•Œä¸­ä¸€è¡Œæˆ–ä¸€åˆ—æœ‰å¤šå¤§</param>
-    /// <param name="forestTexture">æ£®æ—çš„è´´å›¾</param>
-    public void InitMap(float chunkAmount, int mapChunkAmount, float mapSizeOnWorld, Texture2D forestTexture)
-    {
-        this.mapSizeOnWorld = mapSizeOnWorld;
-        this.forestSprite = CreateMapSprite(forestTexture);
-        this.mapChunkAmount = mapChunkAmount;
-        
-        // å†…å®¹å°ºå¯¸
-        contentSize = mapSizeOnWorld * 10;
-        contentTransform.sizeDelta = new Vector2(contentSize, contentSize);
-        
-        // ä¸€ä¸ªUIåœ°å›¾å—çš„å°ºå¯¸
-        mapChunkImageSize = contentSize / chunkAmount;
+    /// <param name="mapAmount">Ò»¸öµØÍ¼Ò»ĞĞ»òÒ»ÁĞÓĞ¶àÉÙ¸öImage/Chunk</param>
+    /// <param name="mapSizeOnWord">µØÍ¼ÔÚÊÀ½çÖĞÒ»ĞĞ»òÒ»ÁĞÓĞ¶à´ó</param>
+    /// <param name="forestTexture">É­ÁÖµÄÌùÍ¼</param>
+    public void InitMap(float mapAmount,int mapChunkSize, float mapSizeOnWord,Texture2D forestTexture)
+    { 
+        this.mapSizeOnWorld = mapSizeOnWord;
+        forestSprite = CreateMapSprite(forestTexture);
+        this.mapChunkAmount = mapChunkSize;
+        // ÄÚÈİ³ß´ç
+        contentSize = mapSizeOnWord * 10;
+        contentTrans.sizeDelta = new Vector2(contentSize, contentSize);
+
+        // Ò»¸öUIµØÍ¼¿éµÄ³ß´ç
+        mapChunkImageSize = contentSize / mapAmount;
         minScale = 1050f / contentSize;
     }
-    
+
     /// <summary>
-    /// æ›´æ–°ä¸­å¿ƒç‚¹ï¼Œä¸ºäº†é¼ æ ‡ç¼©æ”¾çš„æ—¶å€™ï¼Œä¸­å¿ƒç‚¹æ˜¯ç©å®¶ç°åœ¨çš„åæ ‡
+    /// ¸üĞÂÖĞĞÄµã£¬ÎªÁËÊó±êËõ·ÅµÄÊ±ºò£¬ÖĞĞÄµãÊÇÍæ¼ÒÏÖÔÚµÄ×ø±ê
     /// </summary>
     /// <param name="viewerPosition"></param>
     public void UpdatePivot(Vector3 viewerPosition)
     {
         float x = viewerPosition.x / mapSizeOnWorld;
-        float y = viewerPosition.y / mapSizeOnWorld;
-        contentTransform.pivot = new Vector2(x, y);
+        float y = viewerPosition.z / mapSizeOnWorld;
+        // ĞŞ¸ÄContentºó»áµ¼ÖÂScroll Rect ×é¼şµÄ µ±ÖµĞŞ¸ÄÊÂ¼ş=¡·UpdatePlayerIconPos
+        contentTrans.pivot = new Vector2(x, y);
+    }
+
+    public void UpdatePlayerIconPos(Vector2 value)
+    {
+        // Íæ¼ÒµÄIconÍêÈ«·ÅÔÚContentµÄÖĞĞÄµã
+        playerIcon.anchoredPosition3D = contentTrans.anchoredPosition3D;
     }
 
     /// <summary>
-    /// æ·»åŠ å•ä¸ªåœ°å›¾å—
+    /// Ìí¼ÓÒ»¸öµØÍ¼¿é
     /// </summary>
-    public void AddMapChunk(Vector2Int chunkIndex, List<MapChunkMapObjectModel> mapObjectList,
-        Texture2D texture = null)
-    {
-        RectTransform mapChunkRect = Instantiate(mapItemPrefab, contentTransform).GetComponent<RectTransform>();
-        // ç¡®å®šåœ°å›¾å—Imageçš„åæ ‡å’Œå®½é«˜
+    public void AddMapChunk(Vector2Int chunkIndex,List<MapChunkMapObjectModel> mapObjectList,Texture2D texture = null)
+    { 
+        RectTransform mapChunkRect = Instantiate(mapItemPrefab,contentTrans).GetComponent<RectTransform>();
+        // È·¶¨µØÍ¼¿éµÄImageµÄ×ø±êºÍ¿í¸ß
         mapChunkRect.anchoredPosition = new Vector2(chunkIndex.x * mapChunkImageSize, chunkIndex.y * mapChunkImageSize);
         mapChunkRect.sizeDelta = new Vector2(mapChunkImageSize, mapChunkImageSize);
 
         Image mapChunkImage = mapChunkRect.GetComponent<Image>();
-        // æ£®æ—çš„æƒ…å†µ
+        // É­ÁÖµÄÇé¿ö
         if (texture == null)
         {
             mapChunkImage.type = Image.Type.Tiled;
-            // è¦åœ¨ä¸€ä¸ªimageä¸­æ˜¾ç¤º è¿™ä¸ªåœ°å›¾å—åŒ…å«çš„æ ¼å­æ•°é‡
+            // ÉèÖÃÌù´É×©µÄ±ÈÀı£¬ÒªÔÚÒ»¸öImageÖĞÏÔÊ¾ Õâ¸öµØÍ¼¿éËù°üº¬µÄ¸ñ×ÓÊıÁ¿
+            // ÌùÍ¼ºÍImageµÄ±ÈÁĞ
             float ratio = forestSprite.texture.width / mapChunkImageSize;
+            // Ò»¸öµØÍ¼¿éÉÏÓĞ¶àÉÙ¸ö¸ñ×Ó
             mapChunkImage.pixelsPerUnitMultiplier = mapChunkAmount * ratio;
+            mapChunkImage.sprite = forestSprite;
         }
         else mapChunkImage.sprite = CreateMapSprite(texture);
+
+        // TODO:Ìí¼ÓÎïÌåµÄICON
+
+        // TODO:´ıÖØ¹¹£¬ÒòÎª¿Ï¶¨»¹ĞèÒª±£´æICONµÄĞÅÏ¢ÓÃÀ´ºóĞøÒÆ³ı£¨ÒòÎªICON´ú±íµÄ»¨²İÊ÷Ä¾ÓĞ¿ÉÄÜ»áÏûÊ§£©
+        mapImageDic.Add(chunkIndex, mapChunkImage);
     }
+
+
     /// <summary>
-    /// ç”Ÿæˆåœ°å›¾ç²¾çµ
+    /// Éú³ÉµØÍ¼¾«Áé
     /// </summary>
     private Sprite CreateMapSprite(Texture2D texture)
     {
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
+
 }

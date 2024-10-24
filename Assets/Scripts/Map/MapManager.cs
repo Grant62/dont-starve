@@ -1,13 +1,11 @@
-using System.Collections;
 using System.Collections.Generic;
-using JKFrame;
 using UnityEngine;
-using UnityEngine.Serialization;
+using JKFrame;
 
 public class MapManager : MonoBehaviour
 {
     // 地图尺寸
-    public int chunkAmount;        // 一行或者一列有多少个地图块
+    public int mapAmount;        // 一行或者一列有多少个地图块
     public int mapChunkAmount;   // 一个地图块有多少个格子
     public float cellSize;     // 一个格子多少米
 
@@ -15,11 +13,11 @@ public class MapManager : MonoBehaviour
     public float noiseLacunarity;  // 噪音间隙
     public int mapSeed;            // 地图种子
     public int spawnSeed;          // 随时地图对象的种子
-    public float marshLimit;       // 沼泽的边界
+    public float marshBorder;       // 沼泽的边界
 
     // 地图的美术资源
     public Material mapMaterial;
-    public Texture2D forestTexture;
+    public Texture2D forestTexutre;
     public Texture2D[] marshTextures;
     public MapConfig mapConfig;   //地图配置
 
@@ -31,12 +29,13 @@ public class MapManager : MonoBehaviour
 
     public float updateChunkTime = 1f;
     private bool canUpdateChunk = true;
-    private float mapSizeOnWorld;    // 在世界中实际的地图整体尺寸 单位米
+    private float mapSizeOnWorld;    // 在世界中实际的地图整体尺寸
     private float chunkSizeOnWorld;  // 在世界中实际的地图块尺寸 单位米
     private List<MapChunkController> lastVisibleChunkList = new List<MapChunkController>();
 
-    // 某个类型可以生成哪些配置ID
+    // 某个类型可以生成那些配置的ID
     private Dictionary<MapVertexType, List<int>> spawnConfigDic;
+
     void Start()
     {
         // 确定配置
@@ -49,16 +48,15 @@ public class MapManager : MonoBehaviour
             MapVertexType mapVertexType = (item.Value as MapObjectConfig).MapVertexType;
             spawnConfigDic[mapVertexType].Add(item.Key);
         }
+
         // 初始化地图生成器
-        mapGenerator = new MapGenerator(chunkAmount, mapChunkAmount, cellSize, noiseLacunarity, mapSeed, spawnSeed,
-            marshLimit, mapMaterial, forestTexture, marshTextures, spawnConfigDic);
+        mapGenerator = new MapGenerator(mapAmount, mapChunkAmount, cellSize,noiseLacunarity,mapSeed,spawnSeed,marshBorder,mapMaterial,forestTexutre,marshTextures, spawnConfigDic);
         mapGenerator.GenerateMapData();
         mapChunkDic = new Dictionary<Vector2Int, MapChunkController>();
         chunkSizeOnWorld = mapChunkAmount * cellSize;
-        mapSizeOnWorld = chunkSizeOnWorld * chunkAmount;
+        mapSizeOnWorld = chunkSizeOnWorld * mapAmount;
     }
 
-    // Update is called once per frame
     void Update()
     {
         UpdateVisibleChunk();
@@ -69,6 +67,11 @@ public class MapManager : MonoBehaviour
             else ShowMapUI();
             isShowMaping = !isShowMaping;
         }
+
+        if (isShowMaping)
+        {
+            UpdateMapUI();
+        }
     }
 
     // 根据观察者的位置来刷新那些地图块可以看到
@@ -76,6 +79,10 @@ public class MapManager : MonoBehaviour
     {
         // 如果观察者没有移动过，不需要刷新
         if (viewer.position == lastViewerPos) return;
+
+        // 更新地图UI的坐标
+        if (isShowMaping) mapUI.UpdatePivot(viewer.position);
+
         // 如果时间没到 不允许更新
         if (canUpdateChunk == false) return;
 
@@ -104,11 +111,11 @@ public class MapManager : MonoBehaviour
                 canUpdateChunk = false;
                 Invoke("RestCanUpdateChunkFlag", updateChunkTime);
                 Vector2Int chunkIndex = new Vector2Int(startX + x, startY + y);
-                // 之前加载过
-                if (mapChunkDic.TryGetValue(chunkIndex,out MapChunkController chunk))
+                // 在地图字典中，也就是之前加载过，但是不一定加载完成了，因为贴图会在协程中执行，执行完成后才算初始化完毕
+                if (mapChunkDic.TryGetValue(chunkIndex, out MapChunkController chunk))
                 {
-                    // 这个地图是不是已经在显示列表
-                    if (lastVisibleChunkList.Contains(chunk) == false)
+                    // 上一次显示的地图列表中并不包含这个地图块 && 同时它已经完成了初始化
+                    if (lastVisibleChunkList.Contains(chunk) == false && chunk.IsInitialized)
                     {
                         lastVisibleChunkList.Add(chunk);
                         chunk.SetActive(true);
@@ -118,11 +125,6 @@ public class MapManager : MonoBehaviour
                 else
                 {
                     chunk = GenerateMapChunk(chunkIndex);
-                    if (chunk!=null)
-                    {
-                        chunk.SetActive(true);
-                        lastVisibleChunkList.Add(chunk);
-                    }
                 }
             }
         }
@@ -133,8 +135,8 @@ public class MapManager : MonoBehaviour
     /// </summary>
     private Vector2Int GetMapChunkIndexByWorldPosition(Vector3 worldPostion)
     {
-        int x = Mathf.Clamp(Mathf.RoundToInt(worldPostion.x / chunkSizeOnWorld), 1, chunkAmount);
-        int y = Mathf.Clamp(Mathf.RoundToInt(worldPostion.z / chunkSizeOnWorld), 1, chunkAmount);
+        int x = Mathf.Clamp(Mathf.RoundToInt(worldPostion.x / chunkSizeOnWorld), 1, mapAmount);
+        int y = Mathf.Clamp(Mathf.RoundToInt(worldPostion.z / chunkSizeOnWorld), 1, mapAmount);
         return new Vector2Int(x,y);
     }
 
@@ -144,12 +146,9 @@ public class MapManager : MonoBehaviour
     private MapChunkController GenerateMapChunk(Vector2Int index)
     {
         // 检查坐标的合法性
-        if (index.x > chunkAmount - 1 || index.y > chunkAmount - 1) return null;
+        if (index.x > mapAmount-1 || index.y > mapAmount-1) return null;
         if (index.x < 0 || index.y < 0) return null;
-        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform, () =>
-        {
-            mapUIUpdateChunkIndexList.Add(index);
-        });
+        MapChunkController chunk = mapGenerator.GenerateMapChunk(index, transform,()=> mapUIUpdateChunkIndexList.Add(index));
         mapChunkDic.Add(index, chunk);
         return chunk;
     }
@@ -171,7 +170,7 @@ public class MapManager : MonoBehaviour
         mapUI = UIManager.Instance.Show<UI_MapWindow>();
         if (!mapUIInitialized)
         {
-            mapUI.InitMap(chunkAmount, mapSizeOnWorld, forestTexture);
+            mapUI.InitMap(mapAmount, mapChunkAmount, mapSizeOnWorld, forestTexutre);
             mapUIInitialized = true;
         }
         // 更新
@@ -183,13 +182,16 @@ public class MapManager : MonoBehaviour
         {
             Vector2Int chunkIndex = mapUIUpdateChunkIndexList[i];
             Texture2D texture = null;
-            MapChunkController mapChunk = mapChunkDic[chunkIndex];
-            if (!mapChunk.IsAllForest)
+            MapChunkController mapchunk = mapChunkDic[chunkIndex];
+            if (mapchunk.IsAllForest == false)
             {
-                texture = (Texture2D)mapChunk.GetComponent<MeshRenderer>().material.mainTexture;
+                texture = (Texture2D)mapchunk.GetComponent<MeshRenderer>().material.mainTexture;
             }
-            
+            mapUI.AddMapChunk(chunkIndex, mapchunk.mapChunkData.MapObjectList, texture);
         }
+        mapUIUpdateChunkIndexList.Clear();
+        // Content的坐标
+        mapUI.UpdatePivot(viewer.position);
     }
     // 关闭地图UI
     private void CloseMapUI()

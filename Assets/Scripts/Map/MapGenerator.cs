@@ -1,26 +1,24 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Sirenix.OdinInspector;
 using JKFrame;
+using System;
 using Random = UnityEngine.Random;
-
 /// <summary>
-/// åœ°å›¾ç”Ÿæˆå·¥å…·
+/// µØÍ¼Éú³É¹¤¾ß
 /// </summary>
 public class MapGenerator
 {
-    // æ•´ä¸ªåœ°å›¾æ˜¯æ–¹çš„ï¼Œå°±æ˜¯åœ°å›¾å—ã€æ ¼å­ã€è´´å›¾éƒ½æ˜¯æ­£æ–¹å½¢
-    private int mapSize;        // ä¸€è¡Œæˆ–è€…ä¸€åˆ—æœ‰å¤šå°‘ä¸ªåœ°å›¾å—
-    private int mapChunkSize;   // ä¸€ä¸ªåœ°å›¾å—æœ‰å¤šå°‘ä¸ªæ ¼å­
-    private float cellSize;     // ä¸€ä¸ªæ ¼å­å¤šå°‘ç±³
+    // Õû¸öµØÍ¼ÊÇ·½µÄ£¬¾ÍÊÇµØÍ¼¿é¡¢¸ñ×Ó¡¢ÌùÍ¼¶¼ÊÇÕı·½ĞÎ
+    private int mapAmount;        // Ò»ĞĞ»òÕßÒ»ÁĞÓĞ¶àÉÙ¸öµØÍ¼¿é
+    private int mapChunkAmount;   // Ò»¸öµØÍ¼¿éÓĞ¶àÉÙ¸ö¸ñ×Ó
+    private float cellSize;     // Ò»¸ö¸ñ×Ó¶àÉÙÃ×
 
-    private float noiseLacunarity;  // å™ªéŸ³é—´éš™
-    private int mapSeed;            // åœ°å›¾ç§å­
-    private int spawnSeed;          // éšæ—¶åœ°å›¾å¯¹è±¡çš„ç§å­
-    private float marshLimit;       // æ²¼æ³½çš„è¾¹ç•Œ
-    private MapGrid mapGrid;        // åœ°å›¾é€»è¾‘ç½‘æ ¼ã€é¡¶ç‚¹æ•°æ®
+    private float noiseLacunarity;  // ÔëÒô¼äÏ¶
+    private int mapSeed;            // µØÍ¼ÖÖ×Ó
+    private int spawnSeed;          // ËæÊ±µØÍ¼¶ÔÏóµÄÖÖ×Ó
+    private float marshBorder;       // ÕÓÔóµÄ±ß½ç
+    private MapGrid mapGrid;        // µØÍ¼Âß¼­Íø¸ñ¡¢¶¥µãÊı¾İ
     private Material mapMaterial;
     private Material marshMaterial;
     private Mesh chunkMesh;
@@ -31,110 +29,109 @@ public class MapGenerator
 
     private int forestSpawanWeightTotal;
     private int marshSpawanWeightTotal;
+
     public MapGenerator(int mapSize, int mapChunkSize, float cellSize, float noiseLacunarity, int mapSeed, int spawnSeed, float marshLimit, Material mapMaterial, Texture2D forestTexutre, Texture2D[] marshTextures, Dictionary<MapVertexType, List<int>> spawnConfigDic)
     {
-        this.mapSize = mapSize;
-        this.mapChunkSize = mapChunkSize;
+        this.mapAmount = mapSize;
+        this.mapChunkAmount = mapChunkSize;
         this.cellSize = cellSize;
         this.noiseLacunarity = noiseLacunarity;
         this.mapSeed = mapSeed;
         this.spawnSeed = spawnSeed;
-        this.marshLimit = marshLimit;
+        this.marshBorder = marshLimit;
         this.mapMaterial = mapMaterial;
         this.forestTexutre = forestTexutre;
         this.marshTextures = marshTextures;
         this.spawnConfigDic = spawnConfigDic;
     }
 
+
     /// <summary>
-    /// ç”Ÿæˆåœ°å›¾æ•°æ®ï¼Œä¸»è¦æ˜¯æ‰€æœ‰åœ°å›¾å—éƒ½é€šç”¨çš„æ•°æ®
+    /// Éú³ÉµØÍ¼Êı¾İ£¬Ö÷ÒªÊÇËùÓĞµØÍ¼¿é¶¼Í¨ÓÃµÄÊı¾İ
     /// </summary>
     public void GenerateMapData()
     {
-        // åº”ç”¨åœ°å›¾ç§å­
+        // Éú³ÉÔëÉùÍ¼
+        // Ó¦ÓÃµØÍ¼ÖÖ×Ó
         Random.InitState(mapSeed);
-        // ç”Ÿæˆå™ªå£°å›¾
-        float[,] noiseMap = GenerateNoiseMap(mapSize * mapChunkSize, mapSize * mapChunkSize, noiseLacunarity);
-        // ç”Ÿæˆç½‘æ ¼æ•°æ®
-        mapGrid = new MapGrid(mapSize * mapChunkSize, mapSize * mapChunkSize, cellSize);
-        // ç¡®å®šç½‘æ ¼ æ ¼å­çš„è´´å›¾ç´¢å¼•
-        mapGrid.CalculateMapVertexType(noiseMap, marshLimit);
-        // åˆå§‹åŒ–é»˜è®¤æè´¨çš„å°ºå¯¸
+        float[,] noiseMap = GenerateNoiseMap(mapAmount * mapChunkAmount, mapAmount * mapChunkAmount, noiseLacunarity);
+        // Éú³ÉÍø¸ñÊı¾İ
+        mapGrid = new MapGrid(mapAmount * mapChunkAmount, mapAmount * mapChunkAmount, cellSize);
+        // È·¶¨Íø¸ñ ¸ñ×ÓµÄÌùÍ¼Ë÷Òı
+        mapGrid.CalculateMapVertexType(noiseMap, marshBorder);
+        // ³õÊ¼»¯Ä¬ÈÏ²ÄÖÊµÄ³ß´ç
         mapMaterial.mainTexture = forestTexutre;
-        mapMaterial.SetTextureScale("_MainTex", new Vector2(cellSize * mapChunkSize, cellSize * mapChunkSize));
-        // å®ä¾‹åŒ–ä¸€ä¸ªæ²¼æ³½æè´¨
+        mapMaterial.SetTextureScale("_MainTex", new Vector2(cellSize * mapChunkAmount, cellSize * mapChunkAmount));
+        // ÊµÀı»¯Ò»¸öÕÓÔó²ÄÖÊ
         marshMaterial = new Material(mapMaterial);
         marshMaterial.SetTextureScale("_MainTex", Vector2.one);
 
-        chunkMesh = GenerateMapMesh(mapChunkSize, mapChunkSize, cellSize);
-        // ä½¿ç”¨ç§å­æ¥è¿›è¡Œéšæœºç”Ÿæˆ
+        chunkMesh = GenerateMapMesh(mapChunkAmount, mapChunkAmount, cellSize);
+        // Ê¹ÓÃÖÖ×ÓÀ´½øĞĞËæ»úÉú³É
         Random.InitState(spawnSeed);
 
         List<int> temps = spawnConfigDic[MapVertexType.Forest];
-        for (int i = 0; i < temps.Count; i++)
-            forestSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
+        for (int i = 0; i < temps.Count; i++) forestSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
         temps = spawnConfigDic[MapVertexType.Marsh];
-        for (int i = 0; i < temps.Count; i++)
-            marshSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
+        for (int i = 0; i < temps.Count; i++) marshSpawanWeightTotal += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, temps[i]).Probability;
     }
 
     /// <summary>
-    /// ç”Ÿæˆåœ°å›¾å—
+    /// Éú³ÉµØÍ¼¿é
     /// </summary>
     public MapChunkController GenerateMapChunk(Vector2Int chunkIndex,Transform parent,Action callBackForMapTexture)
     {
-        // ç”Ÿæˆåœ°å›¾å—ç‰©ä½“
+        // Éú³ÉµØÍ¼¿éÎïÌå
         GameObject mapChunkObj = new GameObject("Chunk_" + chunkIndex.ToString());
         MapChunkController mapChunk=mapChunkObj.AddComponent<MapChunkController>();
 
-        // ç”ŸæˆMesh
+        // Éú³ÉMesh
         mapChunkObj.AddComponent<MeshFilter>().mesh = chunkMesh;
-        // æ·»åŠ ç¢°æ’ä½“
+        // Ìí¼ÓÅö×²Ìå
         mapChunkObj.AddComponent<MeshCollider>();
 
         bool allForest;
-        // ç”Ÿæˆåœ°å›¾å—çš„è´´å›¾
+        // Éú³ÉµØÍ¼¿éµÄÌùÍ¼
         Texture2D mapTexture;
-         this.StartCoroutine
-         (
-             GenerateMapTexture(chunkIndex, (tex, isAllForest) =>
-             {
-                 allForest = isAllForest;
-             // å¦‚æœå®Œå…¨æ˜¯æ£®æ—ï¼Œæ²¡å¿…è¦åœ¨å®ä¾‹åŒ–ä¸€ä¸ªæè´¨çƒ
-             if (isAllForest)
-             {
-                 mapChunkObj.AddComponent<MeshRenderer>().sharedMaterial = mapMaterial;
-             }
-             else
-             {
-                 mapTexture = tex;
-                 Material material = new Material(marshMaterial);
-                 material.mainTexture = tex;
-                 mapChunkObj.AddComponent<MeshRenderer>().material = material;
-             }
-             callBackForMapTexture?.Invoke();
-             // ç¡®å®šåæ ‡
-             Vector3 position = new Vector3(chunkIndex.x * mapChunkSize * cellSize, 0, chunkIndex.y * mapChunkSize * cellSize);
-             mapChunk.transform.position = position;
-             mapChunkObj.transform.SetParent(parent);
-        
-             // ç”Ÿæˆåœºæ™¯ç‰©ä½“æ•°æ®
-             List<MapChunkMapObjectModel> mapObjectModelList = SpawnMapObject(chunkIndex);
-             mapChunk.Init(chunkIndex,
-                 position + new Vector3((mapChunkSize * cellSize) / 2, 0, (mapChunkSize * cellSize) / 2), allForest,
-                 mapObjectModelList);
-             }));
+        this.StartCoroutine
+        (
+            GenerateMapTexture(chunkIndex, (tex, isAllForest) => {
+            allForest = isAllForest;
+            // Èç¹ûÍêÈ«ÊÇÉ­ÁÖ£¬Ã»±ØÒªÔÚÊµÀı»¯Ò»¸ö²ÄÖÊÇò
+            if (isAllForest)
+            {
+                mapChunkObj.AddComponent<MeshRenderer>().sharedMaterial = mapMaterial;
+            }
+            else
+            {
+                mapTexture = tex;
+                Material material = new Material(marshMaterial);
+                material.mainTexture = tex;
+                mapChunkObj.AddComponent<MeshRenderer>().material = material;
+            }
+            callBackForMapTexture?.Invoke();
+
+            // È·¶¨×ø±ê
+            Vector3 position = new Vector3(chunkIndex.x * mapChunkAmount * cellSize, 0, chunkIndex.y * mapChunkAmount * cellSize);
+            mapChunk.transform.position = position;
+            mapChunkObj.transform.SetParent(parent);
+
+            // Éú³É³¡¾°ÎïÌåÊı¾İ
+            List<MapChunkMapObjectModel> mapObjectModelList = SpawnMapObject(chunkIndex);
+            mapChunk.Init(chunkIndex, position + new Vector3((mapChunkAmount * cellSize) / 2, 0, (mapChunkAmount * cellSize) / 2), allForest, mapObjectModelList);
+            })
+        );
        
         return mapChunk;
     }
 
     /// <summary>
-    /// ç”Ÿæˆåœ°å½¢Mesh
+    /// Éú³ÉµØĞÎMesh
     /// </summary>
     private Mesh GenerateMapMesh(int height,int wdith, float cellSize)
     {
         Mesh mesh = new Mesh();
-        // ç¡®å®šé¡¶ç‚¹åœ¨å“ªé‡Œ
+        // È·¶¨¶¥µãÔÚÄÄÀï
         mesh.vertices = new Vector3[]
         {
             new Vector3(0,0,0),
@@ -142,7 +139,7 @@ public class MapGenerator
             new Vector3(wdith*cellSize,0,height*cellSize),
             new Vector3(wdith*cellSize,0,0),
         };
-        // ç¡®å®šå“ªäº›ç‚¹å½¢æˆä¸‰è§’å½¢
+        // È·¶¨ÄÄĞ©µãĞÎ³ÉÈı½ÇĞÎ
         mesh.triangles = new int[]
         {
             0,1,2,
@@ -155,18 +152,19 @@ public class MapGenerator
             new Vector3(1,1),
             new Vector3(1,0),
         };
-        // è®¡ç®—æ³•çº¿
+        // ¼ÆËã·¨Ïß
         mesh.RecalculateNormals();
         return mesh;
     }
 
     /// <summary>
-    /// ç”Ÿæˆå™ªå£°å›¾
+    /// Éú³ÉÔëÉùÍ¼
     /// </summary>
     private float[,] GenerateNoiseMap(int width, int height, float lacunarity)
-    {
+    { 
+
         lacunarity += 0.1f;
-        // è¿™é‡Œçš„å™ªå£°å›¾æ˜¯ä¸ºäº†é¡¶ç‚¹æœåŠ¡çš„
+        // ÕâÀïµÄÔëÉùÍ¼ÊÇÎªÁË¶¥µã·şÎñµÄ
         float[,] noiseMap = new float[width-1,height-1];
         float offsetX = Random.Range(-10000f, 10000f);
         float offsetY = Random.Range(-10000f, 10000f);
@@ -182,25 +180,25 @@ public class MapGenerator
     }
 
     /// <summary>
-    /// åˆ†å¸§ ç”Ÿæˆåœ°å›¾è´´å›¾
-    /// å¦‚æœè¿™ä¸ªåœ°å›¾å—å®Œå…¨æ˜¯æ£®æ—ï¼Œç›´æ¥è¿”å›æ£®æ—è´´å›¾
+    /// ·ÖÖ¡ Éú³ÉµØÍ¼ÌùÍ¼
+    /// Èç¹ûÕâ¸öµØÍ¼¿éÍêÈ«ÊÇÉ­ÁÖ£¬Ö±½Ó·µ»ØÉ­ÁÖÌùÍ¼
     /// </summary>
     private IEnumerator GenerateMapTexture(Vector2Int chunkIndex,System.Action<Texture2D,bool> callBack)
     {
-        // å½“å‰åœ°å—çš„åç§»é‡ æ‰¾åˆ°è¿™ä¸ªåœ°å›¾å—å…·ä½“çš„æ¯ä¸€ä¸ªæ ¼å­
-        int cellOffsetX = chunkIndex.x * mapChunkSize + 1;
-        int cellOffsetY = chunkIndex.y * mapChunkSize + 1;
+        // µ±Ç°µØ¿éµÄÆ«ÒÆÁ¿ ÕÒµ½Õâ¸öµØÍ¼¿é¾ßÌåµÄÃ¿Ò»¸ö¸ñ×Ó
+        int cellOffsetX = chunkIndex.x * mapChunkAmount + 1;
+        int cellOffsetY = chunkIndex.y * mapChunkAmount + 1;
 
-        // æ˜¯ä¸æ˜¯ä¸€å¼ å®Œæ•´çš„æ£®æ—åœ°å›¾å—
+        // ÊÇ²»ÊÇÒ»ÕÅÍêÕûµÄÉ­ÁÖµØÍ¼¿é
         bool isAllForest = true;
-        // æ£€æŸ¥æ˜¯å¦åªæœ‰æ£®æ—ç±»å‹çš„æ ¼å­
-        for (int y = 0; y < mapChunkSize; y++)
+        // ¼ì²éÊÇ·ñÖ»ÓĞÉ­ÁÖÀàĞÍµÄ¸ñ×Ó
+        for (int y = 0; y < mapChunkAmount; y++)
         {
             if (isAllForest == false) break;
-            for (int x = 0; x < mapChunkSize; x++)
+            for (int x = 0; x < mapChunkAmount; x++)
             {
                 MapCell cell = mapGrid.GetCell(x + cellOffsetX, y + cellOffsetY);
-                if (cell != null && cell.TextureIndex !=0)
+                if (cell != null && cell.TextureIndex != 0)
                 {
                     isAllForest = false;
                     break;
@@ -209,38 +207,38 @@ public class MapGenerator
         }
 
         Texture2D mapTexture = null;
-        // æœ‰æ²¼æ³½çš„æƒ…å†µ
+        // ÓĞÕÓÔóµÄÇé¿ö
         if (!isAllForest)
         {
-            // è´´å›¾éƒ½æ˜¯çŸ©å½¢
+            // ÌùÍ¼¶¼ÊÇ¾ØĞÎ
             int textureCellSize = forestTexutre.width;
-            // æ•´ä¸ªåœ°å›¾å—çš„å®½é«˜,æ­£æ–¹å½¢
-            int textureSize = mapChunkSize * textureCellSize;
+            // Õû¸öµØÍ¼¿éµÄ¿í¸ß,Õı·½ĞÎ
+            int textureSize = mapChunkAmount * textureCellSize;
             mapTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGB24, false);
 
-            // éå†æ¯ä¸€ä¸ªæ ¼å­
-            for (int y = 0; y < mapChunkSize; y++)
+            // ±éÀúÃ¿Ò»¸ö¸ñ×Ó
+            for (int y = 0; y < mapChunkAmount; y++)
             {
-                // ä¸€å¸§åªæ‰§è¡Œä¸€åˆ— åªç»˜åˆ¶ä¸€åˆ—çš„åƒç´ 
+                // Ò»Ö¡Ö»Ö´ĞĞÒ»ÁĞ Ö»»æÖÆÒ»ÁĞµÄÏñËØ
                 yield return null;
-                // åƒç´ åç§»é‡
+                // ÏñËØÆ«ÒÆÁ¿
                 int pixelOffsetY = y * textureCellSize;
-                for (int x = 0; x < mapChunkSize; x++)
+                for (int x = 0; x < mapChunkAmount; x++)
                 {
 
                     int pixelOffsetX = x * textureCellSize;
                     int textureIndex = mapGrid.GetCell(x + cellOffsetX, y + cellOffsetY).TextureIndex - 1;
-                    // ç»˜åˆ¶æ¯ä¸€ä¸ªæ ¼å­å†…çš„åƒç´ 
-                    // è®¿é—®æ¯ä¸€ä¸ªåƒç´ ç‚¹
+                    // »æÖÆÃ¿Ò»¸ö¸ñ×ÓÄÚµÄÏñËØ
+                    // ·ÃÎÊÃ¿Ò»¸öÏñËØµã
                     for (int y1 = 0; y1 < textureCellSize; y1++)
                     {
                         for (int x1 = 0; x1 < textureCellSize; x1++)
                         {
 
-                            // è®¾ç½®æŸä¸ªåƒç´ ç‚¹çš„é¢œè‰²
-                            // ç¡®å®šæ˜¯æ£®æ—è¿˜æ˜¯æ²¼æ³½
-                            // è¿™ä¸ªåœ°æ–¹æ˜¯æ£®æ— ||
-                            // è¿™ä¸ªåœ°æ–¹æ˜¯æ²¼æ³½ä½†æ˜¯æ˜¯é€æ˜çš„ï¼Œè¿™ç§æƒ…å†µéœ€è¦ç»˜åˆ¶groundTextureåŒä½ç½®çš„åƒç´ é¢œè‰²
+                            // ÉèÖÃÄ³¸öÏñËØµãµÄÑÕÉ«
+                            // È·¶¨ÊÇÉ­ÁÖ»¹ÊÇÕÓÔó
+                            // Õâ¸öµØ·½ÊÇÉ­ÁÖ ||
+                            // Õâ¸öµØ·½ÊÇÕÓÔóµ«ÊÇÊÇÍ¸Ã÷µÄ£¬ÕâÖÖÇé¿öĞèÒª»æÖÆgroundTextureÍ¬Î»ÖÃµÄÏñËØÑÕÉ«
                             if (textureIndex < 0)
                             {
                                 Color color = forestTexutre.GetPixel(x1, y1);
@@ -248,7 +246,7 @@ public class MapGenerator
                             }
                             else
                             {
-                                // æ˜¯æ²¼æ³½è´´å›¾çš„é¢œè‰²
+                                // ÊÇÕÓÔóÌùÍ¼µÄÑÕÉ«
                                 Color color = marshTextures[textureIndex].GetPixel(x1, y1);
                                 if (color.a < 1f)
                                 {
@@ -268,61 +266,59 @@ public class MapGenerator
             mapTexture.wrapMode = TextureWrapMode.Clamp;
             mapTexture.Apply();
         }
-        callBack?.Invoke(mapTexture,isAllForest);
+        callBack?.Invoke(mapTexture, isAllForest);
     }
 
     /// <summary>
-    /// ç”Ÿæˆå„ç§åœ°å›¾å¯¹è±¡
+    /// Éú³É¸÷ÖÖµØÍ¼¶ÔÏó
     /// </summary>
     private List<MapChunkMapObjectModel> SpawnMapObject(Vector2Int chunkIndex)
     {
         List<MapChunkMapObjectModel> mapChunkObjectList = new List<MapChunkMapObjectModel>();
 
-        int offsetX = chunkIndex.x * mapChunkSize;
-        int offsetY = chunkIndex.y * mapChunkSize;
-        // éå†åœ°å›¾é¡¶ç‚¹
-        for (int x = 1; x < mapChunkSize; x++)
+        int offsetX = chunkIndex.x * mapChunkAmount;
+        int offsetY = chunkIndex.y * mapChunkAmount;
+
+        // ±éÀúµØÍ¼¶¥µã
+        for (int x = 1; x < mapChunkAmount; x++)
         {
-            for (int y = 1; y < mapChunkSize; y++)
+            for (int y = 1; y < mapChunkAmount; y++)
             {
                 MapVertex mapVertex = mapGrid.GetVertex(x + offsetX, y + offsetY);
-                // æ ¹æ®æ¦‚ç‡é…ç½®éšæœº
+                // ¸ù¾İ¸ÅÂÊÅäÖÃËæ»ú
                 List<int> configIDs = spawnConfigDic[mapVertex.VertexType];
-                
-                // ç¡®å®šæƒé‡çš„æ€»å’Œ
-                int weightTotal = mapVertex.VertexType == MapVertexType.Forest
-                    ? forestSpawanWeightTotal
-                    : marshSpawanWeightTotal;
 
-                int randValue = Random.Range(1, weightTotal + 1); // å®é™…å‘½ä¸­æ•°å­—æ˜¯ä»1~weightTotal
+                // È·¶¨È¨ÖØµÄ×ÜºÍ
+                int weightTotal = mapVertex.VertexType == MapVertexType.Forest?forestSpawanWeightTotal:marshSpawanWeightTotal;
+
+                int randValue = Random.Range(1, weightTotal+1); // Êµ¼ÊÃüÖĞÊı×ÖÊÇ´Ó1~weightTotal
                 float temp = 0;
-                int spawnConfigIndex = 0;   // æœ€ç»ˆè¦ç”Ÿæˆçš„ç‰©å“
-        
+                int spawnConfigIndex = 0;   // ×îÖÕÒªÉú³ÉµÄÎïÆ·
+
                 // 30 20 50
                 for (int i = 0; i < configIDs.Count; i++)
                 {
-                    temp += ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configIDs[i])
-                        .Probability;
+                    temp +=ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configIDs[i]).Probability;
                     if (randValue < temp)
                     {
-                        // å‘½ä¸­
+                        // ÃüÖĞ
                         spawnConfigIndex = i;
                         break;
                     }
                 }
+
                 int configID = configIDs[spawnConfigIndex];
-                // ç¡®å®šåˆ°åº•ç”Ÿæˆä»€ä¹ˆç‰©å“
-                MapObjectConfig spawnModel =
-                    ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configID);
+                // È·¶¨µ½µ×Éú³ÉÊ²Ã´ÎïÆ·
+                MapObjectConfig spawnModel = ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, configID);
                 if (spawnModel.IsEmpty == false)
                 {
-                    Vector3 position = mapVertex.Position + new Vector3(Random.Range(-cellSize/2,cellSize/2), 0,Random.Range(-cellSize / 2, cellSize / 2));
-                    mapChunkObjectList.Add(new MapChunkMapObjectModel()
-                        { ConfigID = configID, Position = position });
+                    Vector3 position = mapVertex.Position + new Vector3(Random.Range(-cellSize / 2, cellSize / 2), 0, Random.Range(-cellSize / 2, cellSize / 2));
+                    mapChunkObjectList.Add(
+                        new MapChunkMapObjectModel() { ConfigID = configID, Position = position }
+                   );
                 }
             }
         }
-
         return mapChunkObjectList;
     }
 }

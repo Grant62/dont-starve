@@ -5,9 +5,9 @@ using JKFrame;
 using Sirenix.OdinInspector;
 
 /// <summary>
-/// åœ°å›¾ç‰©å“çš„ç”Ÿæˆé…ç½®
+/// µØÍ¼ÎïÆ·µÄÉú³ÉÅäÖÃ
 /// </summary>
-[CreateAssetMenu(fileName ="åœ°å›¾é…ç½®",menuName = "Config/åœ°å›¾é…ç½®")]
+[CreateAssetMenu(fileName ="µØÍ¼ÅäÖÃ",menuName = "Config/µØÍ¼ÅäÖÃ")]
 public class MapConfig : ConfigBase
 {
     // public Dictionary<MapVertexType, List<MapObjectSpwanConfigModel>> SpawnConfigDic = new Dictionary<MapVertexType, List<MapObjectSpwanConfigModel>>();

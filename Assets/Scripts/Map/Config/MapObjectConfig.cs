@@ -1,12 +1,18 @@
-using JKFrame;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using JKFrame;
 using Sirenix.OdinInspector;
 
-[CreateAssetMenu(fileName = "åœ°å›¾ç‰©ä½“é…ç½®", menuName = "Config/åœ°å›¾ç‰©ä½“é…ç½®")]
+[CreateAssetMenu(fileName = "µØÍ¼ÎïÌåÅäÖÃ", menuName = "Config/µØÍ¼ÎïÌåÅäÖÃ")]
 public class MapObjectConfig : ConfigBase
 {
-    [LabelText("ç©ºçš„ ä¸ç”Ÿæˆç‰©å“")] public bool IsEmpty = false;
-    [LabelText("æ‰€åœ¨çš„åœ°å›¾é¡¶ç‚¹ç±»å‹")] public MapVertexType MapVertexType;
-    [LabelText("ç”Ÿæˆçš„é¢„åˆ¶ä½“")] public GameObject Prefab;
-    [LabelText("ç”Ÿæˆæ¦‚ç‡ æƒé‡ç±»å‹")] public int Probability;
+    [LabelText("¿ÕµÄ ²»Éú³ÉÎïÆ·")]
+    public bool IsEmpty = false;
+    [LabelText("ËùÔÚµÄµØÍ¼¶¥µãÀàĞÍ")]
+    public MapVertexType MapVertexType;
+    [LabelText("Éú³ÉµÄÔ¤ÖÆÌå")]
+    public GameObject Prefab;
+    [LabelText("Éú³É¸ÅÂÊ È¨ÖØÀàĞÍ")]
+    public int Probability;
 }

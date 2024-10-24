@@ -1,0 +1,21 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "45fd57f7-e5fb-18cb-afe7-9dfc64984133": {
+      "ProjectGuid": "45fd57f7-e5fb-18cb-afe7-9dfc64984133",
+      "DisplayName": "Assembly-CSharp",
+      "ColorIndex": 0
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "杂项文件",
+      "ColorIndex": -1
+    },
+    "f284525c-ed86-2df8-515a-50c5a8a6c996": {
+      "ProjectGuid": "f284525c-ed86-2df8-515a-50c5a8a6c996",
+      "DisplayName": "JKFrame",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}

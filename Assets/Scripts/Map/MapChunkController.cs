@@ -1,16 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
-using JKFrame;
 using UnityEngine;
-
+using JKFrame;
 /// <summary>
-/// åœ°å›¾å—æ•°æ®
+/// µØÍ¼¿éÊı¾İ
 /// </summary>
 public class MapChunkData
 {
     public List<MapChunkMapObjectModel> MapObjectList = new List<MapChunkMapObjectModel>();
 }
-
 public class MapChunkMapObjectModel
 {
     public int ConfigID;
@@ -20,20 +17,21 @@ public class MapChunkMapObjectModel
 public class MapChunkController : MonoBehaviour
 {
     public Vector2Int ChunkIndex { get; private set; }
-    public Vector3 CentrePosition { get; private set; }
+    public Vector3 CenterPosition { get; private set; }
     public bool IsAllForest { get; private set; }
-    private MapChunkData mapChunkData;
+    public MapChunkData mapChunkData { get; private set; }
     private List<GameObject> mapObjectList;
-    
+    public bool IsInitialized { get; private set; } = false;
     private bool isActive = false;
     public void Init(Vector2Int chunkIndex, Vector3 centrePosition, bool isAllForest, List<MapChunkMapObjectModel> MapObjectList)
     {
         ChunkIndex = chunkIndex;
-        CentrePosition = centrePosition;
+        CenterPosition = centrePosition;
         mapChunkData = new MapChunkData();
         mapChunkData.MapObjectList = MapObjectList;
         mapObjectList = new List<GameObject>(MapObjectList.Count);
         IsAllForest = isAllForest;
+        IsInitialized = true;
     }
     
     public void SetActive(bool active)
@@ -42,21 +40,19 @@ public class MapChunkController : MonoBehaviour
         {
             isActive = active;
             gameObject.SetActive(isActive);
-
             List<MapChunkMapObjectModel> ObjectList = mapChunkData.MapObjectList;
-            // ä»å¯¹è±¡æ± ä¸­è·å–æ‰€æœ‰ç‰©ä½“
+            // ´Ó¶ÔÏó³ØÖĞ»ñÈ¡ËùÓĞÎïÌå
             if (isActive)
             {
                 for (int i = 0; i < ObjectList.Count; i++)
                 {
-                    MapObjectConfig config =
-                        ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, ObjectList[i].ConfigID);
+                    MapObjectConfig config = ConfigManager.Instance.GetConfig<MapObjectConfig>(ConfigName.MapObject, ObjectList[i].ConfigID);
                     GameObject go = PoolManager.Instance.GetGameObject(config.Prefab, transform);
                     go.transform.position = ObjectList[i].Position;
                     mapObjectList.Add(go);
                 }
             }
-            // æŠŠæ‰€æœ‰ç‰©ä½“æ”¾å›å¯¹è±¡æ± 
+            // °ÑËùÓĞÎïÌå·Å»Ø¶ÔÏó³Ø
             else
             {
                 for (int i = 0; i < ObjectList.Count; i++)

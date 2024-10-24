@@ -8,10 +8,10 @@ namespace JKFrame
         private ConfigSetting configSetting;
 
         /// <summary>
-        /// 获取所有configTypeName下的配置
+        /// 获取configTypeName下的全部配置
         /// </summary>
         public Dictionary<int, ConfigBase> GetConfigs(string configTypeName)
-        {
+        { 
             return configSetting.GetConfigs(configTypeName);
         }
         /// <summary>

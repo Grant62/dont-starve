@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -42,7 +41,6 @@ public class MapGrid
     public int MapHeight { get; private set; }
     public int MapWidth { get; private set; }
     public float CellSize { get; private set; }
-
 
     #region ¶¥µã
     private void AddVertex(int x, int y)

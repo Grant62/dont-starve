@@ -1,62 +1,67 @@
-using System;
 using System.Collections;
-using JKFrame;
-using Sirenix.OdinInspector;
 using UnityEngine;
+using JKFrame;
+using System;
+using Sirenix.OdinInspector;
+
 /// <summary>
-/// æ—¶é—´ç®¡ç†å™¨
+/// Ê±¼ä×´Ì¬Êı¾İ
 /// </summary>
 [Serializable]
 public class TimeStateData
 {
-    [LabelText("æŒç»­æ—¶é—´")] public float durationTime;
-    [LabelText("é˜³å…‰å¼ºåº¦")] public float sunIntensity;
-    [LabelText("é˜³å…‰é¢œè‰²")] public Color sunColor;
-    [OnValueChanged(nameof(SetRotation)),LabelText("å¤ªé˜³çš„è§’åº¦")] public Vector3 sunRotation;
-    [HideInInspector] public Quaternion sunQuaternion;
-     
-    /// <summary>
-    /// SunRotationå€¼å‘ç”Ÿæ”¹å˜çš„å›è°ƒå‡½æ•°
-    /// </summary>
+    // ³ÖĞøÊ±¼ä
+    public float durationTime;
+    // Ñô¹âÇ¿¶È
+    public float sunIntensity;
+    // Ñô¹âÑÕÉ«
+    public Color sunColor;
+    // Ì«ÑôµÄ½Ç¶È
+    [OnValueChanged(nameof(SetRotation))]
+    public Vector3 sunRotation;
+    [HideInInspector]
+    public Quaternion sunQuaternion;
+
     private void SetRotation()
     {
         sunQuaternion = Quaternion.Euler(sunRotation);
     }
+
     /// <summary>
-    /// æ£€æŸ¥å¹¶ä¸”è®¡ç®—æ—¶é—´
-    /// </summary>0
-    /// <returns>æ˜¯å¦è¿˜åœ¨å½“å‰çŠ¶æ€</returns>
-    public bool CheckAndCalTime(float currTime,TimeStateData nextState, out Quaternion rotation,out Color color,out float sunIntensity)
+    /// ¼ì²é²¢ÇÒ¼ÆËãÊ±¼ä
+    /// </summary>
+    /// <returns>ÊÇ·ñ»¹ÔÚµ±Ç°×´Ì¬</returns>
+    public bool CheckAndCalTime(float currTime, TimeStateData nextState, out Quaternion rotation, out Color color, out float sunIntensity)
     {
-        // 0~1ä¹‹é—´
+        // 0~1Ö®¼ä
         float ratio = 1f - (currTime / durationTime);
-        rotation = Quaternion.Slerp(this.sunQuaternion, nextState.sunQuaternion, ratio); 
+        rotation = Quaternion.Slerp(this.sunQuaternion, nextState.sunQuaternion, ratio);
         color = Color.Lerp(this.sunColor, nextState.sunColor, ratio);
         sunIntensity = UnityEngine.Mathf.Lerp(this.sunIntensity, nextState.sunIntensity, ratio);
-        // å¦‚æœæ—¶é—´å¤§äº0æ‰€ä»¥è¿˜åœ¨æœ¬çŠ¶æ€
+        // Èç¹ûÊ±¼ä´óÓÚ0ËùÒÔ»¹ÔÚ±¾×´Ì¬
         return currTime > 0;
     }
 }
+
+/// <summary>
+/// Ê±¼ä¹ÜÀíÆ÷
+/// </summary>
 public class TimeManager : LogicManagerBase<TimeManager>
 {
-    [SerializeField,LabelText("å¤ªé˜³")] private Light mainLight;                   
-    // [SerializeField,LabelText("å½“å‰å¤ªé˜³å¼ºåº¦")] private float lightValue;                 
-    [SerializeField,LabelText("æ—¶é—´é…ç½®")] private TimeStateData[] timeStateDatas;    
+    [SerializeField] private Light mainLight;                   // Ì«Ñô
+    [SerializeField] private TimeStateData[] timeStateDatas;    // Ê±¼äÅäÖÃ
     private int currentStateIndex = 0;
     private float currTime = 0;
     private int dayNum;
-    
-    [SerializeField,Range(0,30),LabelText("æ—¶é—´ç¼©æ”¾")] private float timeScale = 1;
+
+    [SerializeField,Range(0,30)] private float timeScale = 1;
     protected override void RegisterEventListener()
     {
-        
-    }
 
+    }
     protected override void CancelEventListener()
     {
-        
     }
-
     private void Start()
     {
         StartCoroutine(UpdateTime());
@@ -64,22 +69,25 @@ public class TimeManager : LogicManagerBase<TimeManager>
 
     private IEnumerator UpdateTime()
     {
-        currentStateIndex = 0;   // é»˜è®¤æ˜¯æ—©ä¸Š
+        currentStateIndex = 0;   // Ä¬ÈÏÊÇÔçÉÏ
         int nextIndex = currentStateIndex + 1;
         currTime = timeStateDatas[currentStateIndex].durationTime;
-        dayNum = 0;
+        dayNum = 0; // ÌìÊı
         while (true)
         {
             yield return null;
             currTime -= Time.deltaTime * timeScale;
+            // ¼ÆËã²¢ÇÒµÃµ½Ñô¹âÏà¹ØµÄÉèÖÃ
             if (!timeStateDatas[currentStateIndex].CheckAndCalTime(currTime, timeStateDatas[nextIndex], out Quaternion quaternion, out Color color, out float sunIntensity))
             {
+                // ÇĞ»»µ½ÏÂÒ»¸ö×´Ì¬
                 currentStateIndex = nextIndex;
+                // ¼ì²é±ß½ç£¬³¬¹ı¾Í´Ó0¿ªÊ¼
                 nextIndex = currentStateIndex + 1 >= timeStateDatas.Length ? 0 : currentStateIndex + 1;
+                // Èç¹ûÏÖÔÚÊÇÔçÉÏ£¬Ò²¾ÍÊÇcurrentStateIndex==0£¬ÄÇÃ´ÒâÎ¶×Å£¬ÌìÊı¼Ó1
                 if (currentStateIndex == 0) dayNum++;
                 currTime = timeStateDatas[currentStateIndex].durationTime;
             }
-
             mainLight.transform.rotation = quaternion;
             mainLight.color = color;
             SetLight(sunIntensity);
@@ -87,8 +95,9 @@ public class TimeManager : LogicManagerBase<TimeManager>
     }
 
     private void SetLight(float intensity)
-    {
+    { 
         mainLight.intensity = intensity;
+        // ÉèÖÃ»·¾³¹âµÄÁÁ¶È
         RenderSettings.ambientIntensity = intensity;
     }
 }
